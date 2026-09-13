@@ -27,14 +27,24 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <div className="text-sm font-semibold tracking-tight">Covenant Sentinel</div>
               <div className="text-xs text-[color:var(--muted)]">Debt-covenant monitoring on GenLayer</div>
             </div>
-            <a
-              href="https://github.com/HarrisonJL/covenant-sentinel"
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs text-[color:var(--muted)] hover:text-[color:var(--foreground)]"
-            >
-              Source ↗
-            </a>
+            <div className="flex items-center gap-4 text-xs text-[color:var(--muted)]">
+              <a
+                href="https://github.com/HarrisonJL/covenant-sentinel-dashboard"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-[color:var(--foreground)]"
+              >
+                Dashboard source ↗
+              </a>
+              <a
+                href="https://github.com/HarrisonJL/covenant-sentinel"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-[color:var(--foreground)]"
+              >
+                Contract source ↗
+              </a>
+            </div>
           </div>
         </header>
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">{children}</main>
