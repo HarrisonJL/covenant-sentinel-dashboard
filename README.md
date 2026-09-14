@@ -1,6 +1,6 @@
 # Covenant Sentinel Dashboard
 
-A lender/borrower dashboard for [Covenant Sentinel](https://github.com/HarrisonJL/covenant-sentinel), a [GenLayer](https://genlayer.com) Intelligent Contract for debt-covenant monitoring on tokenized RWA / private-credit facilities. This repo is the Project layer built on top of that already-submitted contract - the contract itself, its design rationale, and its own submission live in the linked repo.
+A lender/borrower dashboard for Covenant Sentinel, a [GenLayer](https://genlayer.com) Intelligent Contract for debt-covenant monitoring on tokenized RWA / private-credit facilities. This repo is the Project layer built on top of that contract - the contract source is included directly here (see Contract below) so the integration and adjudication behavior can be verified in this repo alone; the contract's own development history, design rationale, and full test suite are maintained at [github.com/HarrisonJL/covenant-sentinel](https://github.com/HarrisonJL/covenant-sentinel), submitted separately under Intelligent Contracts.
 
 **Live on GenLayer's Bradbury testnet. Testnet only - no real value anywhere in this project.**
 
@@ -13,7 +13,8 @@ A lender/borrower dashboard for [Covenant Sentinel](https://github.com/HarrisonJ
 ## Contract
 
 - **Address:** [`0x60989e9737295e17Dad7DD4AeEE47822634049B6`](https://explorer-bradbury.genlayer.com/address/0x60989e9737295e17Dad7DD4AeEE47822634049B6) on GenLayer Bradbury Testnet (chain id `4221`)
-- **Source, design rationale, and tests:** [github.com/HarrisonJL/covenant-sentinel](https://github.com/HarrisonJL/covenant-sentinel)
+- **Source (included in this repo):** [`contract/covenant_sentinel.py`](contract/covenant_sentinel.py) - an exact mirror of the deployed contract, included directly here so the dashboard's `add_covenant` / `submit_disclosure` / `get_state` / `get_covenants` / `get_periods` calls can be verified against the real adjudication logic without leaving this repo.
+- **Canonical source, design rationale, and full test suite:** [github.com/HarrisonJL/covenant-sentinel](https://github.com/HarrisonJL/covenant-sentinel) - that repo is the actual Intelligent Contracts submission and is where the contract is developed; this copy is kept in sync with it for the Project submission's own verifiability.
 - Redeployed from the dashboard's original contract to add reporting-deadline replay protection - the previous address (`0x605cFCdc095D94951c0b9Ef16E769662Dd63253E`) is superseded.
 
 ## Development
