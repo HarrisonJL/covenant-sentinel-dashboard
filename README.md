@@ -12,9 +12,9 @@ A lender/borrower dashboard for [Covenant Sentinel](https://github.com/HarrisonJ
 
 ## Contract
 
-- **Address:** [`0x605cFCdc095D94951c0b9Ef16E769662Dd63253E`](https://explorer-bradbury.genlayer.com/address/0x605cFCdc095D94951c0b9Ef16E769662Dd63253E) on GenLayer Bradbury Testnet (chain id `4221`)
+- **Address:** [`0x60989e9737295e17Dad7DD4AeEE47822634049B6`](https://explorer-bradbury.genlayer.com/address/0x60989e9737295e17Dad7DD4AeEE47822634049B6) on GenLayer Bradbury Testnet (chain id `4221`)
 - **Source, design rationale, and tests:** [github.com/HarrisonJL/covenant-sentinel](https://github.com/HarrisonJL/covenant-sentinel)
-- The live instance already has one real covenant (`min_dscr`, DSCR ≥ 1.25x) and one real disclosure submitted and passed through actual validator consensus - not seeded with mock data.
+- Redeployed from the dashboard's original contract to add reporting-deadline replay protection - the previous address (`0x605cFCdc095D94951c0b9Ef16E769662Dd63253E`) is superseded.
 
 ## Development
 
