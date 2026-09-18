@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { CONTRACT_ADDRESS, chain } from "@/lib/genlayer";
 import { useFacilityState, fetchCovenants, fetchPeriods, isConfigured, type Covenant, type Period } from "@/lib/useCovenantState";
-import { truncateAddress, timeAgo, formatSeconds } from "@/lib/format";
+import { truncateAddress, timeAgo, formatSeconds, deadlinePassed } from "@/lib/format";
 import { Card, StatCard, StatusBadge } from "@/components/ui";
 import CovenantsList from "@/components/CovenantsList";
 import PeriodsTable from "@/components/PeriodsTable";
 import AddCovenantForm from "@/components/AddCovenantForm";
 import SubmitDisclosureForm from "@/components/SubmitDisclosureForm";
+import FlagReportingDefaultButton from "@/components/FlagReportingDefaultButton";
 
 export default function Home() {
   const { state, error, loading, refresh } = useFacilityState();
@@ -51,7 +52,12 @@ export default function Home() {
     );
   }
 
-  const nextPeriodId = state.period_count + 1;
+  // last_period_id only ever increases (the contract asserts
+  // period_id > last_period_id) but periods aren't required to be
+  // contiguous, so it can diverge from period_count. Always derive the
+  // next id from last_period_id, never from the submission count.
+  const nextPeriodId = state.last_period_id + 1;
+  const deadlineLikelyPassed = deadlinePassed(state.last_report_time, state.reporting_deadline_seconds);
 
   return (
     <div className="space-y-6">
@@ -91,6 +97,12 @@ export default function Home() {
       {state.status === "current" && (
         <Card title="Submit a disclosure" subtitle="borrower only">
           <SubmitDisclosureForm periodId={nextPeriodId} onSettled={refreshAll} />
+        </Card>
+      )}
+
+      {state.status === "current" && (
+        <Card title="Flag reporting default" subtitle="anyone can call this">
+          <FlagReportingDefaultButton deadlineLikelyPassed={deadlineLikelyPassed} onSettled={refreshAll} />
         </Card>
       )}
 

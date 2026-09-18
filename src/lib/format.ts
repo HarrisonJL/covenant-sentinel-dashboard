@@ -26,6 +26,12 @@ export function formatBps(value: number | bigint | string): string {
   return `${whole}.${fracStr}x`;
 }
 
+export function deadlinePassed(lastReportTimeIso: string, deadlineSeconds: number): boolean {
+  const then = new Date(lastReportTimeIso).getTime();
+  if (Number.isNaN(then)) return false;
+  return Date.now() - then > deadlineSeconds * 1000;
+}
+
 export function formatSeconds(seconds: number): string {
   const days = Math.floor(seconds / 86400);
   if (days >= 1) return `${days} day${days === 1 ? "" : "s"}`;

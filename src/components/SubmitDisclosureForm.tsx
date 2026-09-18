@@ -3,24 +3,13 @@
 import { useRef, useState } from "react";
 import { CONTRACT_ADDRESS, getWriteClient } from "@/lib/genlayer";
 import { useWallet } from "@/lib/useWallet";
-import { pollTransaction, STATUS_COPY, type Progress } from "@/lib/pollTransaction";
-import { fetchPeriods, type Period } from "@/lib/useCovenantState";
+import { pollTransaction, STATUS_COPY, STATUS_NAMES, type Progress } from "@/lib/pollTransaction";
+import { fetchFacilityState, type Period } from "@/lib/useCovenantState";
+import { resolveBoundPeriod } from "@/lib/bindPeriod";
 import { Button, Field, inputClass, PassBadge } from "@/components/ui";
 
 const MAX_LEN = 4000;
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function fetchLatestPeriod(): Promise<Period | null> {
-  for (let i = 0; i < 4; i++) {
-    const periods = await fetchPeriods(0, 1);
-    if (periods[0]) return periods[0];
-    await sleep(1500);
-  }
-  return null;
-}
+const ACCEPTED = "5";
 
 export default function SubmitDisclosureForm({
   periodId,
@@ -52,6 +41,9 @@ export default function SubmitDisclosureForm({
     setResult(null);
     cancelledRef.current = false;
     try {
+      // Captured before the write so the post-submission bind can tell
+      // apart "our new record" from whatever was already there.
+      const beforeCount = (await fetchFacilityState()).period_count;
       const client = getWriteClient(account);
       const txHash = await client.writeContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
@@ -60,9 +52,30 @@ export default function SubmitDisclosureForm({
         value: 0n,
       });
       setStage("waiting");
-      await pollTransaction(client, txHash, "ACCEPTED", setProgress, () => cancelledRef.current);
-      const latest = await fetchLatestPeriod();
-      setResult(latest);
+      const tx = await pollTransaction(client, txHash, "ACCEPTED", setProgress, () => cancelledRef.current);
+      const statusNum = String(tx.status);
+      if (statusNum !== ACCEPTED) {
+        // pollTransaction's target "ACCEPTED" resolves as soon as the
+        // transaction reaches ANY decided status, not just literal
+        // ACCEPTED - CANCELED/UNDETERMINED/VALIDATORS_TIMEOUT/LEADER_TIMEOUT
+        // all land here too. None of those are a success, and none of them
+        // should render a disclosure result at all.
+        const statusName = STATUS_NAMES[statusNum] ?? statusNum;
+        setError(STATUS_COPY[statusName] ?? `Disclosure was not accepted (status: ${statusName}).`);
+        setStage("idle");
+        return;
+      }
+      const bindResult = await resolveBoundPeriod(beforeCount, periodId);
+      if (bindResult.kind !== "bound") {
+        setError(
+          bindResult.kind === "unmatched"
+            ? "The disclosure was accepted, but the newest recorded period doesn't match what was submitted. Refresh and check the period history."
+            : "The disclosure was accepted on-chain, but no new period record has appeared yet. Refresh in a moment to check the period history."
+        );
+        setStage("idle");
+        return;
+      }
+      setResult(bindResult.period);
       setText("");
       setStage("done");
       onSettled();

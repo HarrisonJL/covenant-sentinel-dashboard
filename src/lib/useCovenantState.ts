@@ -11,6 +11,11 @@ export type FacilityState = {
   period_count: number;
   reporting_deadline_seconds: number;
   last_report_time: string;
+  // last_period_id only ever increases (submit_disclosure asserts
+  // period_id > last_period_id) but isn't guaranteed to equal period_count -
+  // periods aren't required to be contiguous. Always derive the next
+  // period_id to submit from this field, never from period_count.
+  last_period_id: number;
 };
 
 export type Covenant = {
@@ -32,6 +37,18 @@ export function isConfigured(): boolean {
   return CONTRACT_ADDRESS.length > 0;
 }
 
+// Standalone (not just the hook's internal refresh) so bindPeriod.ts's
+// count-delta check can read a fresh period_count without going through
+// React state.
+export async function fetchFacilityState(): Promise<FacilityState> {
+  const client = getReadClient();
+  return (await client.readContract({
+    address: CONTRACT_ADDRESS as `0x${string}`,
+    functionName: "get_state",
+    args: [],
+  })) as FacilityState;
+}
+
 export function useFacilityState(pollMs = 8000) {
   const [state, setState] = useState<FacilityState | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,13 +61,7 @@ export function useFacilityState(pollMs = 8000) {
       return;
     }
     try {
-      const client = getReadClient();
-      const raw = (await client.readContract({
-        address: CONTRACT_ADDRESS as `0x${string}`,
-        functionName: "get_state",
-        args: [],
-      })) as FacilityState;
-      setState(raw);
+      setState(await fetchFacilityState());
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to read facility state.");

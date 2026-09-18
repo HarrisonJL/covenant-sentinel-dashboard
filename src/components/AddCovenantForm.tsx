@@ -3,8 +3,10 @@
 import { useRef, useState } from "react";
 import { CONTRACT_ADDRESS, getWriteClient } from "@/lib/genlayer";
 import { useWallet } from "@/lib/useWallet";
-import { pollTransaction, STATUS_COPY, type Progress } from "@/lib/pollTransaction";
+import { pollTransaction, STATUS_COPY, STATUS_NAMES, type Progress } from "@/lib/pollTransaction";
 import { Button, Field, inputClass } from "@/components/ui";
+
+const ACCEPTED = "5";
 
 export default function AddCovenantForm({ onSettled }: { onSettled: () => void }) {
   const { account, connecting, error: walletError, connect } = useWallet();
@@ -38,7 +40,16 @@ export default function AddCovenantForm({ onSettled }: { onSettled: () => void }
         args: [name.trim(), metric.trim(), comparison, thresholdBps],
         value: 0n,
       });
-      await pollTransaction(client, txHash, "ACCEPTED", setProgress, () => cancelledRef.current);
+      const tx = await pollTransaction(client, txHash, "ACCEPTED", setProgress, () => cancelledRef.current);
+      const statusNum = String(tx.status);
+      if (statusNum !== ACCEPTED) {
+        // "ACCEPTED" target resolves on any decided status, not just literal
+        // ACCEPTED - CANCELED/UNDETERMINED/timeout states must not report
+        // success.
+        const statusName = STATUS_NAMES[statusNum] ?? statusNum;
+        setError(STATUS_COPY[statusName] ?? `Covenant was not accepted (status: ${statusName}).`);
+        return;
+      }
       setName("");
       setMetric("");
       setThresholdDecimal("");
