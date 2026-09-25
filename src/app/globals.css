@@ -10,6 +10,8 @@
   --current: #34d399;
   --breach: #f87171;
   --reporting-default: #fbbf24;
+  --waived: #a78bfa;
+  --inconclusive: #94a3b8;
 }
 
 * {
@@ -53,4 +55,16 @@ body {
   color: var(--reporting-default);
   background: color-mix(in srgb, var(--reporting-default) 14%, transparent);
   border: 1px solid color-mix(in srgb, var(--reporting-default) 35%, transparent);
+}
+
+.status-waived {
+  color: var(--waived);
+  background: color-mix(in srgb, var(--waived) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--waived) 35%, transparent);
+}
+
+.status-inconclusive {
+  color: var(--inconclusive);
+  background: color-mix(in srgb, var(--inconclusive) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--inconclusive) 35%, transparent);
 }

@@ -6,8 +6,12 @@ function makePeriod(overrides: Partial<Period> = {}): Period {
   return {
     period_id: 3,
     disclosure_text: "Q1 2026 disclosure",
+    disclosure_url: "",
     extracted_json: '{"dscr": 15000}',
-    all_passed: true,
+    per_covenant_json: '{"min_dscr": "PASS"}',
+    content_hash: "deadbeef",
+    verdict: "PASS",
+    submitted_by: "0x0000000000000000000000000000000000000000",
     submitted_at: "2026-01-01T00:00:00Z",
     ...overrides,
   };
@@ -29,7 +33,7 @@ describe("findBoundPeriod", () => {
 
 describe("bindPeriodFromDelta", () => {
   it("binds to the correct record by period_id", () => {
-    const mine = makePeriod({ period_id: 3, all_passed: false });
+    const mine = makePeriod({ period_id: 3, verdict: "FAIL" });
     const result = bindPeriodFromDelta(2, 3, [mine], 3);
     expect(result).toEqual({ kind: "bound", period: mine });
   });

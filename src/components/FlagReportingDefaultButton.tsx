@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { CONTRACT_ADDRESS, getWriteClient } from "@/lib/genlayer";
 import { useWallet } from "@/lib/useWallet";
-import { pollTransaction, STATUS_COPY, STATUS_NAMES, type Progress } from "@/lib/pollTransaction";
+import { pollTransaction, describeFailure, STATUS_COPY, type Progress } from "@/lib/pollTransaction";
 import { Button } from "@/components/ui";
 
 const ACCEPTED = "5";
@@ -30,17 +30,17 @@ export default function FlagReportingDefaultButton({
     cancelledRef.current = false;
     try {
       const client = getWriteClient(account);
+      const fees = await (client as any).estimateTransactionFees({});
       const txHash = await client.writeContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
         functionName: "flag_reporting_default",
         args: [],
-        value: 0n,
-      });
+        fees: { distribution: fees.distribution, feeValue: fees.feeValue },
+      } as any);
       const tx = await pollTransaction(client, txHash, "ACCEPTED", setProgress, () => cancelledRef.current);
       const statusNum = String(tx.status);
       if (statusNum !== ACCEPTED) {
-        const statusName = STATUS_NAMES[statusNum] ?? statusNum;
-        setError(STATUS_COPY[statusName] ?? `Not accepted (status: ${statusName}).`);
+        setError(describeFailure(tx, "the reporting deadline may not have elapsed yet."));
         return;
       }
       setDone(true);

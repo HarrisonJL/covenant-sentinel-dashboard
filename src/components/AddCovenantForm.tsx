@@ -3,10 +3,11 @@
 import { useRef, useState } from "react";
 import { CONTRACT_ADDRESS, getWriteClient } from "@/lib/genlayer";
 import { useWallet } from "@/lib/useWallet";
-import { pollTransaction, STATUS_COPY, STATUS_NAMES, type Progress } from "@/lib/pollTransaction";
+import { pollTransaction, describeFailure, STATUS_COPY, type Progress } from "@/lib/pollTransaction";
 import { Button, Field, inputClass } from "@/components/ui";
 
 const ACCEPTED = "5";
+const DEFAULT_TOLERANCE_PERCENT = "5";
 
 export default function AddCovenantForm({ onSettled }: { onSettled: () => void }) {
   const { account, connecting, error: walletError, connect } = useWallet();
@@ -14,6 +15,7 @@ export default function AddCovenantForm({ onSettled }: { onSettled: () => void }
   const [metric, setMetric] = useState("");
   const [comparison, setComparison] = useState<"gte" | "lte">("gte");
   const [thresholdDecimal, setThresholdDecimal] = useState("");
+  const [tolerancePercent, setTolerancePercent] = useState(DEFAULT_TOLERANCE_PERCENT);
   const [submitting, setSubmitting] = useState(false);
   const [progress, setProgress] = useState<Progress | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -23,8 +25,13 @@ export default function AddCovenantForm({ onSettled }: { onSettled: () => void }
   async function submit() {
     if (!account) return;
     const threshold = Number(thresholdDecimal);
+    const tolerance = Number(tolerancePercent);
     if (!name.trim() || !metric.trim() || !Number.isFinite(threshold) || threshold < 0) {
       setError("Fill in a name, a metric key, and a non-negative threshold.");
+      return;
+    }
+    if (!Number.isFinite(tolerance) || tolerance < 0 || tolerance > 20) {
+      setError("Tolerance must be between 0 and 20%.");
       return;
     }
     setSubmitting(true);
@@ -34,25 +41,27 @@ export default function AddCovenantForm({ onSettled }: { onSettled: () => void }
     try {
       const client = getWriteClient(account);
       const thresholdBps = Math.round(threshold * 10000);
+      const toleranceBps = Math.round(tolerance * 100);
+      const fees = await (client as any).estimateTransactionFees({});
       const txHash = await client.writeContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
         functionName: "add_covenant",
-        args: [name.trim(), metric.trim(), comparison, thresholdBps],
-        value: 0n,
-      });
+        args: [name.trim(), metric.trim(), comparison, thresholdBps, toleranceBps],
+        fees: { distribution: fees.distribution, feeValue: fees.feeValue },
+      } as any);
       const tx = await pollTransaction(client, txHash, "ACCEPTED", setProgress, () => cancelledRef.current);
       const statusNum = String(tx.status);
       if (statusNum !== ACCEPTED) {
         // "ACCEPTED" target resolves on any decided status, not just literal
         // ACCEPTED - CANCELED/UNDETERMINED/timeout states must not report
         // success.
-        const statusName = STATUS_NAMES[statusNum] ?? statusNum;
-        setError(STATUS_COPY[statusName] ?? `Covenant was not accepted (status: ${statusName}).`);
+        setError(describeFailure(tx, "check the covenant's name and threshold."));
         return;
       }
       setName("");
       setMetric("");
       setThresholdDecimal("");
+      setTolerancePercent(DEFAULT_TOLERANCE_PERCENT);
       setDone(true);
       onSettled();
     } catch (err) {
@@ -104,6 +113,19 @@ export default function AddCovenantForm({ onSettled }: { onSettled: () => void }
             inputMode="decimal"
             disabled={submitting}
           />
+        </Field>
+        <Field label="Tolerance band (%)">
+          <input
+            className={inputClass}
+            value={tolerancePercent}
+            onChange={(e) => setTolerancePercent(e.target.value)}
+            placeholder="5"
+            inputMode="decimal"
+            disabled={submitting}
+          />
+          <span className="mt-1 block text-xs text-[color:var(--muted)]">
+            A reading within this % of the threshold reports Inconclusive instead of forcing a pass or fail.
+          </span>
         </Field>
       </div>
       <Button onClick={submit} loading={submitting} disabled={submitting}>

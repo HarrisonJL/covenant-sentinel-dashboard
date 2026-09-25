@@ -37,6 +37,7 @@ export function StatCard({ label, value, hint }: { label: string; value: string;
 const STATUS_LABEL: Record<FacilityState["status"], string> = {
   current: "Current",
   breach: "Breach",
+  waived: "Waived",
   reporting_default: "Reporting default",
 };
 
@@ -48,14 +49,45 @@ export function StatusBadge({ status }: { status: FacilityState["status"] }) {
   );
 }
 
-export function PassBadge({ passed }: { passed: boolean }) {
-  return passed ? (
-    <span className="status-current inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
-      Pass
+const VERDICT_STATUS_CLASS: Record<"PASS" | "FAIL" | "INCONCLUSIVE", string> = {
+  PASS: "status-current",
+  FAIL: "status-breach",
+  INCONCLUSIVE: "status-inconclusive",
+};
+
+const VERDICT_LABEL: Record<"PASS" | "FAIL" | "INCONCLUSIVE", string> = {
+  PASS: "Pass",
+  FAIL: "Fail",
+  INCONCLUSIVE: "Inconclusive",
+};
+
+// PASS/FAIL/INCONCLUSIVE - v2's tolerance-band verdict replaces v1's plain
+// pass/fail boolean, since a reading within a covenant's tolerance band of
+// its threshold is neither a confirmed pass nor a confirmed breach.
+export function VerdictBadge({ verdict }: { verdict: "PASS" | "FAIL" | "INCONCLUSIVE" }) {
+  return (
+    <span className={`${VERDICT_STATUS_CLASS[verdict]} inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium`}>
+      {VERDICT_LABEL[verdict]}
     </span>
-  ) : (
-    <span className="status-breach inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
-      Fail
+  );
+}
+
+const WAIVER_STATUS_CLASS: Record<"pending" | "granted" | "rejected", string> = {
+  pending: "status-waived",
+  granted: "status-current",
+  rejected: "status-breach",
+};
+
+const WAIVER_STATUS_LABEL: Record<"pending" | "granted" | "rejected", string> = {
+  pending: "Pending",
+  granted: "Granted",
+  rejected: "Rejected",
+};
+
+export function WaiverStatusBadge({ status }: { status: "pending" | "granted" | "rejected" }) {
+  return (
+    <span className={`${WAIVER_STATUS_CLASS[status]} inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium`}>
+      {WAIVER_STATUS_LABEL[status]}
     </span>
   );
 }
