@@ -14,7 +14,7 @@ A lender/borrower dashboard for Covenant Sentinel, a [GenLayer](https://genlayer
 
 ## Contract
 
-- **Address:** [`0xeAfeD2A86317Db3Cd745ae2EbCB82549906bcDc7`](https://explorer-studio-dev.genlayer.com/address/0xeAfeD2A86317Db3Cd745ae2EbCB82549906bcDc7) on GenLayer Studio Next (chain id `61997`)
+- **Address:** [`0xb0179b88BA9A373C7Ee57428D0373Eeb59f720D1`](https://explorer-studio-dev.genlayer.com/address/0xb0179b88BA9A373C7Ee57428D0373Eeb59f720D1) on GenLayer Studio Next (chain id `61997`)
 - **Source (included in this repo):** [`contract/covenant_sentinel_v2_studio_next.py`](contract/covenant_sentinel_v2_studio_next.py) - an exact mirror of the deployed contract, included directly here so the dashboard's calls can be verified against the real adjudication logic without leaving this repo. [`contract/covenant_sentinel.py`](contract/covenant_sentinel.py) (v1, Bradbury) is kept for history.
 - **Canonical source, design rationale, and full test suite:** [github.com/HarrisonJL/covenant-sentinel](https://github.com/HarrisonJL/covenant-sentinel) - that repo is the actual Intelligent Contracts submission and is where the contract is developed; see its [`MILESTONE.md`](https://github.com/HarrisonJL/covenant-sentinel/blob/main/MILESTONE.md) for the v2 Milestone writeup (waiver/cure state machine, live disclosure fetch, tolerance-band validator) this dashboard now surfaces.
 
